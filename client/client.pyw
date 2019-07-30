@@ -1,5 +1,5 @@
 '''
-Creates the client GUI and processes the update requests
+Creates the client GUI and processes the requests
 '''
 import tkinter
 from tkinter.scrolledtext import ScrolledText
