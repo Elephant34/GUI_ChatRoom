@@ -1,6 +1,9 @@
 '''
 Creates the client GUI and processes the requests
 '''
+# For the socket connection
+import socket
+# For the GUI
 import tkinter
 from tkinter.scrolledtext import ScrolledText
 
@@ -34,6 +37,8 @@ class ServerGUI(tkinter.Frame):  # pylint: disable=too-many-ancestors
         self.root = root
 
         super().__init__(self.root)
+
+        self.server_alive = False
 
         # Set up the two main frames needed
 
@@ -100,13 +105,14 @@ class ServerGUI(tkinter.Frame):  # pylint: disable=too-many-ancestors
         self.input_ent = tkinter.Entry(self.input_fr)
         self.input_ent.pack(fill=tkinter.BOTH,
                             side=tkinter.LEFT, expand=True, padx=3, pady=3)
+        self.input_ent.bind("<Return>", lambda e: self.send_data())
 
         # Send button
-        tkinter.Button(self.input_fr, text="send", command=self.send_data()).pack(
+        tkinter.Button(self.input_fr, text="send", command=lambda: self.send_data()).pack(
             fill=tkinter.BOTH, side=tkinter.LEFT, expand=True, padx=3, pady=3)
 
         # Close button
-        tkinter.Button(self.input_fr, text="close server", command=self.close_server()).pack(
+        tkinter.Button(self.input_fr, text="close server", command=lambda: self.close_server()).pack(
             fill=tkinter.BOTH, side=tkinter.LEFT, expand=True, padx=3, pady=3)
 
     def start_server(self):
@@ -114,21 +120,57 @@ class ServerGUI(tkinter.Frame):  # pylint: disable=too-many-ancestors
         Opens the socket connection
         '''
 
-        return
+        if self.server_alive:
+            self.add_log_text(
+                """====================================
+Server already running
+Please stop the server and try again
+====================================""")
+            return
+
+        self.add_log_text("Attempting to start server...")
+
+        self.host = str(self.host_ent.get())
+        self.port = self.port_ent.get()
+
+        try:
+            self.port = int(self.port)
+        except ValueError:
+            self.add_log_text("Port isn't valid")
+            self.add_log_text("Stoping server start\n======================")
+            return
+
+        if self.port < 1023 or self.port > 65535:
+            self.add_log_text("Port isn't valid")
+            self.add_log_text("Stoping server start\n======================")
+            return
+
+        if not self.host:
+            self.add_log_text("Host isn't valid")
+            self.add_log_text("Stoping server start\n======================")
+            return
+
+        self.add_log_text("Sever started successfully")
+        self.add_log_text("Waiting for client connection...")
+        self.server_alive = True
 
     def close_server(self):
         '''
         Disconnects the socket connection
         '''
 
-        return
+        self.add_log_text("Server closed\n=============")
+        self.server_alive = False
 
     def send_data(self):
         '''
         Sends data to the server
         '''
+        if not self.server_alive:
+            return
 
-        return
+        self.add_log_text(str(self.input_ent.get()))
+        self.input_ent.delete(0, tkinter.END)
 
     def add_log_text(self, msg):
         '''
